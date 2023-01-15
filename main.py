@@ -1,6 +1,6 @@
 #   Imports
 import pygame
-import random
+import math
 pygame.init()
 pygame.font.init()
 run = True
@@ -23,6 +23,134 @@ def endScreen():
     pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, 0, 800, 400))
     screen.blit(endScreenText, ((800 - endScreenText.get_width()) // 2, (400 - endScreenText.get_height()) //2))
 
+#   PathFinding Classes and Methods
+size = (width, height) = 800, 400
+
+cols, rows = 40, 20
+
+grid = []
+
+
+w = width//cols
+h = height//rows
+
+class Node:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.neighbors = []
+        self.prev = None
+        self.wall = False
+        self.g = 0
+        self.f = 1000
+        self.h = 0
+        self.reset = True
+
+
+    def addNeighbors(self, grid):
+        if self.x < cols - 1:
+            self.neighbors.append(grid[self.x+1][self.y])
+        if self.x > 0:
+            self.neighbors.append(grid[self.x-1][self.y])
+        if self.y < rows - 1:
+            self.neighbors.append(grid[self.x][self.y+1])
+        if self.y > 0:
+            self.neighbors.append(grid[self.x][self.y-1])
+
+for x in range(cols):
+    arr = []
+    for y in range(rows):
+        arr.append(Node(x, y))
+    grid.append(arr)
+
+for i in range(cols):
+    for j in range(rows):
+        grid[i][j].addNeighbors(grid)
+
+def createWall(x, y):
+    grid[x][y].wall = True
+    grid[x][y].reset = False
+
+def caluclateHeuristic(a, b):
+    dx = b[0] - a[0]
+    dy = b[1] - a[1]
+    return(math.sqrt(dx * dx + dy * dy))
+
+def aStar(ghostPos, pacPos, build):
+    vis = []
+    opset = [grid[ghostPos[0]][ghostPos[1]]]
+    cur = grid[ghostPos[0]][ghostPos[1]]
+    goal = grid[pacPos[0]][pacPos[1]]
+    best = 0
+    while cur != goal:
+        
+        cur = opset[best]
+        for neighbor in cur.neighbors:
+            if neighbor not in vis and not neighbor.wall:
+                tempG = cur.g + 1
+
+                newPath = False
+                if neighbor in opset:
+                    if tempG < neighbor.g:
+                        neighbor.g = tempG
+                        newPath = True
+                else:
+                    neighbor.g = tempG
+                    newPath = True
+                
+                if newPath:
+                    neighbor.h = caluclateHeuristic([neighbor.x, neighbor.y], [goal.x, goal.y])
+                    neighbor.f = neighbor.g + neighbor.h
+                    neighbor.prev = cur
+                if neighbor not in opset:
+                    opset.append(neighbor)
+        opset.remove(cur)
+        vis.append(cur)
+        bestF = 1000
+        for i, n in enumerate(opset):
+            if n.f < bestF:
+                best = i
+                bestF = n.f
+        
+    
+
+    path = []
+    while(cur.prev != None):
+        if(build):
+            cur.prev.wall = True
+        path.append(cur.prev)
+        cur = cur.prev
+
+
+
+    '''for y in range(rows):
+        line = str(y)
+        for x in range(cols):
+            if grid[x][y] == cur:
+                line += "0"
+            elif grid[x][y] in path:
+                line += "|"
+            elif grid[x][y] in vis:
+                line += "X"
+            elif grid[x][y] in opset:
+                line += "O"
+            else:
+                line += " "
+        print(line)'''
+    
+    for x in range(cols):
+        for y in range(rows):
+            grid[x][y].f = 1000
+            grid[x][y].g = 0
+            grid[x][y].h = 0
+            grid[x][y].prev = None
+            if(not build and grid[x][y].reset):
+                grid[x][y].wall = False
+    if len(path) >= 2:
+        return path[-2]
+    else:
+        return True
+    
 
 #   ScreenBitMap Stuff
 screenBitMap = []
@@ -34,22 +162,25 @@ for x in range(800):
 
 mapFile = open("wallMap.txt", "r")
 mapFileFinal = mapFile.read()
-mapLineArray = mapFileFinal.split("#", 3)
+mapLineArray = mapFileFinal.split("#", 11)
 mapLineArray[len(mapLineArray)-1] = mapLineArray[len(mapLineArray)-1].strip("#")
 
 for mapLine in mapLineArray:
     lineArray = mapLine.split()
-    print(lineArray)
     pygame.draw.rect(screen, wallColor, pygame.Rect(int(lineArray[0]), int(lineArray[1]), int(lineArray[2]), int(lineArray[3])), 0)
     for x in range(int(lineArray[2])):
         for y in range(int(lineArray[3])):
             screenBitMap[int(lineArray[0]) + x - 1 ][int(lineArray[1]) + y - 1] = False
+            if (x == 0 and y == 0):
+                createWall(int(lineArray[0]) // 20, int(lineArray[1]) // 20) 
+            elif (x % 20 == 0 and y % 20 == 0):
+                createWall((x + int(lineArray[0])) // 20, (y + int(lineArray[1])) // 20)
 
 #   Movement and Basic Pacman Stuff
 pacmanCurrentX = 100
 pacmanCurrentY = 100
-pacmanXVel = 10
-pacmanYVel = 10
+pacmanXVel = 20
+pacmanYVel = 20
 pacmanPastX = 0
 pacmanPastY = 0
 pos = [100, 100, 0]
@@ -164,8 +295,9 @@ class Ghost:
 
     ghostHeight = 20
     ghostWidth = 20
-    ghostXVel = 10
-    ghostYVel = 10
+    ghostXVel = 20
+    ghostYVel = 20
+    path = []
 
     def __init__(self, xPos, yPos, color, dir):
         self.xPos = xPos
@@ -177,11 +309,11 @@ class Ghost:
         self.pastY = yPos - 20
     
     def dislayGhost(self):
-        if((self.wantedDir == self.dir) and ( (self.xPos == self.pastX) and (self.yPos == self.pastY))):
+        '''if((self.wantedDir == self.dir) and ( (self.xPos == self.pastX) and (self.yPos == self.pastY))):
             self.pos = canMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
             self.xPos = self.pos[0]
             self.yPos = self.pos[1]
-            self.dir = self.pos[2]
+            self.dir = self.pos[2]'''
         if(self.color == "Red"):
             self.value = 0
         elif(self.color == "Blue"):
@@ -204,44 +336,72 @@ class Ghost:
             screen.blit(ghostList[16], (self.pastX, self.pastY))
         screen.blit(ghostList[self.value], (self.xPos, self.yPos))
     
-    def calculateMovements(self):
+    def calculateMovements(self, build):
+        global pacmanCurrentX
+        global pacmanCurrentY
         self.pastX = self.xPos
         self.pastY = self.yPos
-        if(abs(self.xPos - pacmanCurrentX) > abs(self.yPos - pacmanCurrentY)):
-            if(self.xPos - pacmanCurrentX > 0):
-                self.wantedDir = 180
+        self.target = aStar([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20], build)
+        #print('(', self.target.x, self.target.y, ')', '(', self.xPos//20, self.yPos//20, ')')
+        #print(caluclateHeuristic([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20]) , self.target.h)
+        if(self.target != True):
+            self.xPos = self.target.x * 20
+            self.yPos = self.target.y * 20
+        # if(self.target):
+        #     if(self.xPos > self.target.x * 20):
+        #         self.dir = 180
+        #     elif(self.xPos < self.target.x * 20):
+        #         self.dir = 0
+        #     if(self.yPos > self.target.y * 20):
+        #         self.dir = 90
+        #     elif(self.yPos < self.target.y * 20):
+        #         self.dir = 270
+        #     self.xPos = self.target.x * 20
+        #     self.xPos = self.target.y * 20
+        
+        '''else:
+        if(True):
+            if(abs(self.xPos - pacmanCurrentX) > abs(self.yPos - pacmanCurrentY)):
+                if(self.xPos - pacmanCurrentX > 0):
+                    self.wantedDir = 180
+                else:
+                    self.wantedDir = 0
             else:
-                self.wantedDir = 0
-        else:
-            if(self.yPos - pacmanCurrentY > 0):
-                self.wantedDir = 90
-            else:
-                self.wantedDir = 270
-        self.pos = canMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
-        self.xPos = self.pos[0]
-        self.yPos = self.pos[1]
-        self.dir = self.pos[2]
+                if(self.yPos - pacmanCurrentY > 0):
+                    self.wantedDir = 90
+                else:
+                    self.wantedDir = 270
+            self.pos = canMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
+            self.xPos = self.pos[0]
+            self.yPos = self.pos[1]
+            self.dir = self.pos[2]'''
 
 
         
 redGhost = Ghost(200, 200, "Red", 0)
-#blueGhost = Ghost(300, 200, "Blue", 90)
+blueGhost = Ghost(300, 200, "Blue", 90)
 #pinkGhost = Ghost(200, 300, "Pink", 180)
 #yellowGhost = Ghost(300, 300, "Yellow", 270)
 
 def ghostFunctions():
-    redGhost.calculateMovements()
-    #blueGhost.calculateMovements()
+    redGhost.calculateMovements(True)
+    blueGhost.calculateMovements(False)
     #yellowGhost.calculateMovements()
     #pinkGhost.calculateMovements()
     redGhost.dislayGhost()
-    #blueGhost.dislayGhost()
+    blueGhost.dislayGhost()
     #yellowGhost.dislayGhost()
     #pinkGhost.dislayGhost()
-    
-    
+
+def end():
+    if(redGhost.target == True or blueGhost.target == True):
+        redGhost.dislayGhost()
+        blueGhost.dislayGhost()
+        return True
+    return False
+
 while run:
-    pygame.time.delay(80)
+    pygame.time.delay(120)
     pacmanPastX = pacmanCurrentX
     pacmanPastY = pacmanCurrentY
     for event in pygame.event.get():
@@ -263,18 +423,20 @@ while run:
 
     if(keys[pygame.K_q]):
         break
-    if(keys[pygame.K_e]):
-        close = True
-        endScreen()
+    
 
     pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
     pacmanCurrentX = pos[0]
     pacmanCurrentY = pos[1]
     pacmanDir = pos[2]
-    if(runner % 2 == 0):
-        ghostFunctions()
+        
     if(not close):
         displayPacman()
+        if(runner % 2 == 0):
+            ghostFunctions()
+            if(end()):
+                endScreen()
+                close = True
     
     switchToClosed = not switchToClosed
     runner += 1

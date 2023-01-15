@@ -1,4 +1,4 @@
-import pygame, sys, random, math
+'''import pygame, sys, random, math
 from tkinter import messagebox, Tk
 
 
@@ -25,6 +25,120 @@ class Node:
         self.neighbors = []
         self.prev = None
         self.wall = False
+        self.g = 0
+        self.f = 1000
+
+
+    def addNeighbors(self, grid):
+        if self.x < cols - 1:
+            self.neighbors.append(grid[self.x+1][self.y])
+        if self.x > 0:
+            self.neighbors.append(grid[self.x-1][self.y])
+        if self.y < rows - 1:
+            self.neighbors.append(grid[self.x][self.y+1])
+        if self.y > 0:
+            self.neighbors.append(grid[self.x][self.y-1])
+          
+def heuristics(a, b):
+    return math.sqrt(abs(a.x - b.x)**2 + abs(a.y - b.y)**2)
+
+def createWall(x, y):
+    grid[x][y].wall = True
+
+for x in range(cols):
+    arr = []
+    for y in range(rows):
+        arr.append(Node(x, y))
+    grid.append(arr)
+
+for i in range(cols):
+    for j in range(rows):
+        grid[i][j].addNeighbors(grid)
+
+start = grid[0][0]
+end = grid[35][21]
+
+
+
+openSet.append(start)
+
+def main():
+    iter = 0
+    flag = False
+    noflag = True
+    while(flag == False):
+        if len(openSet) > 0:
+            winner = 0
+            for i in range(len(openSet)):
+                if openSet[i].f < openSet[winner].f:
+                    winner = i
+            current = openSet[winner]
+
+            if current == end:
+                temp = current
+                while temp.prev:
+                    path.append(temp.prev)
+                    temp = temp.prev 
+                if not flag:
+                    flag = True
+                    print("Done")
+            if flag == False:
+                openSet.remove(current)
+                closeSet.append(current)
+                for neighbor in current.neighbors:
+                    if neighbor in closeSet or neighbor.wall:
+                        continue
+                    tempG = current.g + 1
+                    newPath = False
+                    if neighbor in openSet:
+                        if tempG < neighbor.g:
+                            neighbor.g = tempG
+                            newPath = True
+                    else:
+                        neighbor.g = tempG
+                        newPath = True
+                        openSet.append(neighbor)
+                    iter+=1
+                    if newPath:
+                        neighbor.h = heuristics(neighbor, end)
+                        neighbor.f = neighbor.g + neighbor.h
+                        neighbor.prev = current
+        else:
+            if noflag:
+                print("L bozo")
+                break
+    print(iter)
+
+main()
+
+for node in path:
+    print(str(node.x) + " " + str(node.y))
+
+'''
+
+import pygame, sys, random, math
+from tkinter import messagebox, Tk
+
+
+
+size = (width, height) = 600, 600
+
+pygame.init()
+
+win = pygame.display.set_mode(size)
+
+clock = pygame.time.Clock()
+
+cols, rows = 50, 50
+
+
+grid = []
+openSet, closeSet = [], []
+path = []
+
+w = width//cols
+h = height//rows
+
 class Spot:
     def __init__(self, i, j):
         self.x, self.y = i, j

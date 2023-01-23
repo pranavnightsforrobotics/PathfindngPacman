@@ -114,7 +114,7 @@ main()
 for node in path:
     print(str(node.x) + " " + str(node.y))
 
-'''
+''''''
 
 import pygame, sys, random, math
 from tkinter import messagebox, Tk
@@ -304,4 +304,7 @@ def main():
 
 
 
-main()
+main()'''
+
+for x in range(20):
+    print(x)

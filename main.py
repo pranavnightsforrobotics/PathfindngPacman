@@ -27,7 +27,7 @@ def endScreen():
 size = (width, height) = 800, 400
 
 cols, rows = 40, 20
-
+reasonable = 800
 grid = []
 
 
@@ -82,8 +82,8 @@ def aStar(ghostPos, pacPos, build):
     cur = grid[ghostPos[0]][ghostPos[1]]
     goal = grid[pacPos[0]][pacPos[1]]
     best = 0
+    ver = False
     while cur != goal:
-        
         cur = opset[best]
         for neighbor in cur.neighbors:
             if neighbor not in vis and not neighbor.wall:
@@ -112,14 +112,20 @@ def aStar(ghostPos, pacPos, build):
                 best = i
                 bestF = n.f
         
-    
+        if(best > len(opset) -1):
+            ver = True
+            break
 
+    
+    #if(len(vis) < 40):
     path = []
     while(cur.prev != None):
         if(build):
             cur.prev.wall = True
         path.append(cur.prev)
         cur = cur.prev
+    #else:
+    #    path = [False, False]
 
 
 
@@ -131,7 +137,7 @@ def aStar(ghostPos, pacPos, build):
             elif grid[x][y] in path:
                 line += "|"
             elif grid[x][y] in vis:
-                line += "X"
+                line += "X"w
             elif grid[x][y] in opset:
                 line += "O"
             else:
@@ -147,7 +153,16 @@ def aStar(ghostPos, pacPos, build):
             if(not build and grid[x][y].reset):
                 grid[x][y].wall = False
     if len(path) >= 2:
-        return path[-2]
+        if(ver):
+            minF = path[-2]
+            for x in range(len(path)):
+                if(path[-x].g == 1):
+                    tempF = path[-x]
+                    if(tempF.h < minF.h):
+                        minF = tempF
+            return minF
+        else:
+            return path[-2]
     else:
         return True
     
@@ -162,7 +177,7 @@ for x in range(800):
 
 mapFile = open("wallMap.txt", "r")
 mapFileFinal = mapFile.read()
-mapLineArray = mapFileFinal.split("#", 11)
+mapLineArray = mapFileFinal.split("#", 73)
 mapLineArray[len(mapLineArray)-1] = mapLineArray[len(mapLineArray)-1].strip("#")
 
 for mapLine in mapLineArray:
@@ -172,13 +187,15 @@ for mapLine in mapLineArray:
         for y in range(int(lineArray[3])):
             screenBitMap[int(lineArray[0]) + x - 1 ][int(lineArray[1]) + y - 1] = False
             if (x == 0 and y == 0):
-                createWall(int(lineArray[0]) // 20, int(lineArray[1]) // 20) 
+                createWall(int(lineArray[0]) // 20, int(lineArray[1]) // 20)
+                reasonable -= 1
             elif (x % 20 == 0 and y % 20 == 0):
                 createWall((x + int(lineArray[0])) // 20, (y + int(lineArray[1])) // 20)
+                reasonable -= 1
 
 #   Movement and Basic Pacman Stuff
-pacmanCurrentX = 100
-pacmanCurrentY = 100
+pacmanCurrentX = 300
+pacmanCurrentY = 240
 pacmanXVel = 20
 pacmanYVel = 20
 pacmanPastX = 0
@@ -217,35 +234,62 @@ def displayPacman():
         elif(pacmanDir == 270):
             screen.blit(pacmanSpriteSmallDownOpen, (pacmanCurrentX, pacmanCurrentY))
 
+#def ghostCanMove(wantedDirOne, wantedDirTwo, currentX, currentY, xVel, yVel):
+#    
+#    else:
+#        return [currentX, currentY, currentDir]
 #   Deciding how to move for all characters
 def canMove(wantedDir, currentDir, currentX, currentY, xVel, yVel):
-    if(wantedDir == 0):
-        for xPos in range(20):
-            for yPos in range(20):
-                if(not screenBitMap[currentX + xVel + xPos - 1][currentY + yPos -1]):
-                    return [currentX, currentY, currentDir]
-        return [currentX + xVel, currentY, wantedDir]
-    elif(wantedDir == 90):
-        for xPos in range(20):
-            for yPos in range(20):
-                if(not screenBitMap[currentX + xPos - 1][currentY - yVel + yPos -1]):
-                    return [currentX, currentY, currentDir]
-        return [currentX, currentY - yVel, wantedDir]
-    elif(wantedDir == 180):
-        for xPos in range(20):
-            for yPos in range(20):
-                if(not screenBitMap[currentX - xVel + xPos - 1][currentY + yPos -1]):
-                    return [currentX, currentY, currentDir]
-        return [currentX - xVel, currentY, wantedDir]
-    elif(wantedDir == 270):
-        for xPos in range(20):
-            for yPos in range(20):
-                if(not screenBitMap[currentX + xPos - 1][currentY + yVel + yPos -1]):
-                    return [currentX, currentY, currentDir]
-        return [currentX, currentY+ yVel, wantedDir]
-    else:
-        return [currentX, currentY, currentDir]
+    canWant = True
+    canCur = True
+    for xPos in range(20):
+        for yPos in range(20):
+            if(wantedDir == 0 or currentDir == 0):
+                if(not screenBitMap[currentX + xVel + xPos - 1][currentY + yPos - 1]):
+                    if(wantedDir == 0):
+                        canWant = False
+                    if(currentDir == 0):
+                        canCur = False
+            if(wantedDir == 90 or currentDir == 90):
+                if(not screenBitMap[currentX + xPos - 1][currentY - yVel + yPos - 1]):
+                    if(wantedDir == 90):
+                        canWant = False
+                    if(currentDir == 90):
+                        canCur = False
 
+            if(wantedDir == 180 or currentDir == 180):
+                if(not screenBitMap[currentX - xVel + xPos - 1][currentY + yPos - 1]):
+                    if(wantedDir == 180):
+                        canWant = False
+                    if(currentDir == 180):
+                        canCur = False
+            
+            if(wantedDir == 270 or currentDir == 270):
+                if(not screenBitMap[currentX + xPos - 1][currentY + yVel + yPos - 1]):
+                    if(wantedDir == 270):
+                        canWant = False
+                    if(currentDir == 270):
+                        canCur = False
+            
+    if(canWant == True):
+        if(wantedDir == 0):
+            return [currentX + xVel, currentY, wantedDir]
+        elif(wantedDir == 90):
+            return [currentX, currentY - yVel, wantedDir]
+        elif(wantedDir == 180):
+            return [currentX - xVel, currentY, wantedDir]
+        elif(wantedDir == 270):
+            return [currentX, currentY + yVel, wantedDir]
+    elif(canCur == True):
+        if(currentDir == 0):
+            return [currentX + xVel, currentY, currentDir]
+        elif(currentDir == 90):
+            return [currentX, currentY - yVel, currentDir]
+        elif(currentDir == 180):
+            return [currentX - xVel, currentY, currentDir]
+        elif(currentDir == 270):
+            return [currentX, currentY + yVel, currentDir]
+    return [currentX, currentY, currentDir]
 
 #   Creating all Ghost Images
 redLeftGhostImage = pygame.image.load("redLeftGhost.png")
@@ -305,8 +349,8 @@ class Ghost:
         self.color = color
         self.dir = dir
         self.wantedDir = dir
-        self.pastX = xPos - 20
-        self.pastY = yPos - 20
+        self.pastX = xPos
+        self.pastY = yPos
     
     def dislayGhost(self):
         '''if((self.wantedDir == self.dir) and ( (self.xPos == self.pastX) and (self.yPos == self.pastY))):
@@ -344,6 +388,21 @@ class Ghost:
         self.target = aStar([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20], build)
         #print('(', self.target.x, self.target.y, ')', '(', self.xPos//20, self.yPos//20, ')')
         #print(caluclateHeuristic([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20]) , self.target.h)
+        '''if(self.target == False):
+            if(abs(self.xPos - pacmanCurrentX) > abs(self.yPos - pacmanCurrentY)):
+                if(self.xPos - pacmanCurrentX > 0):
+                    self.wantedDir = 180
+                else:
+                    self.wantedDir = 0
+            else:
+                if(self.yPos - pacmanCurrentY > 0):
+                    self.wantedDir = 90
+                else:
+                    self.wantedDir = 270
+            self.pos = ghostCanMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
+            self.xPos = self.pos[0]
+            self.yPos = self.pos[1]
+            self.dir = self.pos[2]'''
         if(self.target != True):
             self.xPos = self.target.x * 20
             self.yPos = self.target.y * 20
@@ -378,30 +437,32 @@ class Ghost:
 
 
         
-redGhost = Ghost(200, 200, "Red", 0)
-blueGhost = Ghost(300, 200, "Blue", 90)
-#pinkGhost = Ghost(200, 300, "Pink", 180)
-#yellowGhost = Ghost(300, 300, "Yellow", 270)
+redGhost = Ghost(60, 60, "Red", 0)
+blueGhost = Ghost(60, 340, "Blue", 90)
+pinkGhost = Ghost(740, 20, "Pink", 180)
+yellowGhost = Ghost(740, 360, "Yellow", 270)
 
 def ghostFunctions():
-    redGhost.calculateMovements(True)
+    yellowGhost.calculateMovements(True)
     blueGhost.calculateMovements(False)
-    #yellowGhost.calculateMovements()
-    #pinkGhost.calculateMovements()
+    redGhost.calculateMovements(True)
+    pinkGhost.calculateMovements(False)
     redGhost.dislayGhost()
     blueGhost.dislayGhost()
-    #yellowGhost.dislayGhost()
-    #pinkGhost.dislayGhost()
+    yellowGhost.dislayGhost()
+    pinkGhost.dislayGhost()
 
 def end():
-    if(redGhost.target == True or blueGhost.target == True):
+    if(redGhost.target == True or blueGhost.target == True or yellowGhost.target == True or pinkGhost.target == True):
         redGhost.dislayGhost()
         blueGhost.dislayGhost()
+        yellowGhost.dislayGhost()
+        pinkGhost.dislayGhost()
         return True
     return False
 
 while run:
-    pygame.time.delay(120)
+    pygame.time.delay(40)
     pacmanPastX = pacmanCurrentX
     pacmanPastY = pacmanCurrentY
     for event in pygame.event.get():
@@ -423,22 +484,21 @@ while run:
 
     if(keys[pygame.K_q]):
         break
-    
-
-    pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
-    pacmanCurrentX = pos[0]
-    pacmanCurrentY = pos[1]
-    pacmanDir = pos[2]
         
     if(not close):
-        displayPacman()
         if(runner % 2 == 0):
+            switchToClosed = not switchToClosed
+            pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
+            pacmanCurrentX = pos[0]
+            pacmanCurrentY = pos[1]
+            pacmanDir = pos[2]
+            displayPacman()
+        if(runner % 3 == 0):
             ghostFunctions()
             if(end()):
                 endScreen()
                 close = True
     
-    switchToClosed = not switchToClosed
     runner += 1
     pygame.display.update()
 

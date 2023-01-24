@@ -306,5 +306,5 @@ def main():
 
 main()'''
 
-for x in range(20):
+for x in range(20, 5):
     print(x)

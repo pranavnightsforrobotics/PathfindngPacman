@@ -120,9 +120,9 @@ def aStar(ghostPos, pacPos, build):
     #if(len(vis) < 40):
     path = []
     while(cur.prev != None):
+        path.append(cur.prev)
         if(build):
             cur.prev.wall = True
-        path.append(cur.prev)
         cur = cur.prev
     #else:
     #    path = [False, False]
@@ -442,11 +442,13 @@ blueGhost = Ghost(60, 340, "Blue", 90)
 pinkGhost = Ghost(740, 20, "Pink", 180)
 yellowGhost = Ghost(740, 360, "Yellow", 270)
 
+ghosts = [redGhost, blueGhost, pinkGhost, yellowGhost]
+
 def ghostFunctions():
-    yellowGhost.calculateMovements(True)
-    blueGhost.calculateMovements(False)
-    redGhost.calculateMovements(True)
-    pinkGhost.calculateMovements(False)
+    yellowGhost.calculateMovements(False)
+    blueGhost.calculateMovements(True)
+    redGhost.calculateMovements(False)
+    pinkGhost.calculateMovements(True)
     redGhost.dislayGhost()
     blueGhost.dislayGhost()
     yellowGhost.dislayGhost()
@@ -454,6 +456,20 @@ def ghostFunctions():
 
 def end():
     if(redGhost.target == True or blueGhost.target == True or yellowGhost.target == True or pinkGhost.target == True):
+        if(yellowGhost.target == True):
+            if(caluclateHeuristic([yellowGhost.xPos, yellowGhost.yPos], [pacmanCurrentX, pacmanCurrentY]) < 21):
+                pass
+            else:
+                print(caluclateHeuristic([yellowGhost.xPos, yellowGhost.yPos], [pacmanCurrentX, pacmanCurrentY]))
+                return False
+
+        elif(redGhost.target == True):
+            if(caluclateHeuristic([redGhost.xPos, redGhost.yPos], [pacmanCurrentX, pacmanCurrentY]) < 21):
+                pass
+            else:
+                print(caluclateHeuristic([redGhost.xPos, redGhost.yPos], [pacmanCurrentX, pacmanCurrentY]))
+                return False
+
         redGhost.dislayGhost()
         blueGhost.dislayGhost()
         yellowGhost.dislayGhost()
@@ -461,8 +477,46 @@ def end():
         return True
     return False
 
+fruitImage = pygame.image.load("fruit.png")
+
+fruitSmall = pygame.transform.scale(fruitImage, (20, 20))
+
+class fruit:
+    def __init__(self, xPos, yPos, wall):
+        self.xPos = xPos
+        self.yPos = yPos
+        self.eaten = wall
+    
+    def display(self):
+        for ghost in ghosts:
+            if(self.xPos == ghost.xPos and self.yPos == ghost.yPos):
+                break
+            elif(self.xPos == pacmanCurrentX and self.yPos == pacmanCurrentY):
+                break
+            elif(self.eaten == True):
+                break
+            else:
+                screen.blit(fruitSmall, (self.xPos,self.yPos))
+
+fruits = []
+for x in range(0, 800, 20):
+    arr = []
+    for y in range(0, 400, 20):
+        arr.append(fruit(x, y, grid[x//20][y//20].wall))
+    fruits.append(arr)
+
+for x in fruits:
+    for y in x:
+        y.display()
+
+def displayFruits(resetArr, atePos):
+    for pos in resetArr:
+        fruits[pos[0]//20][pos[1]//20].display()
+    fruits[atePos[0]//20][atePos[1]//20].eaten = True
+
 while run:
-    pygame.time.delay(40)
+    resetArr = []
+    pygame.time.delay(80)
     pacmanPastX = pacmanCurrentX
     pacmanPastY = pacmanCurrentY
     for event in pygame.event.get():
@@ -486,19 +540,24 @@ while run:
         break
         
     if(not close):
-        if(runner % 2 == 0):
+        resetArr = [[redGhost.pastX, redGhost.pastY], [blueGhost.pastX, blueGhost.pastY], [pinkGhost.pastX, pinkGhost.pastY], [yellowGhost.pastX, yellowGhost.pastY]] 
+        displayFruits(resetArr, [pacmanCurrentX, pacmanCurrentY])
+        if(runner % 1 == 0):
             switchToClosed = not switchToClosed
             pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
             pacmanCurrentX = pos[0]
             pacmanCurrentY = pos[1]
             pacmanDir = pos[2]
             displayPacman()
-        if(runner % 3 == 0):
+        if(runner % 2 == 0):
             ghostFunctions()
             if(end()):
-                endScreen()
+                runner = -20
                 close = True
     
+    
+    if(runner == -1):
+        endScreen()
     runner += 1
     pygame.display.update()
 

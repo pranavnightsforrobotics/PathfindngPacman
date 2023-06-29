@@ -114,7 +114,7 @@ main()
 for node in path:
     print(str(node.x) + " " + str(node.y))
 
-''''''
+'''
 
 import pygame, sys, random, math
 from tkinter import messagebox, Tk
@@ -164,14 +164,14 @@ class Spot:
         if self.y > 0:
             self.neighbors.append(grid[self.x][self.y-1])
         #Add Diagonals
-        #if self.x < cols - 1 and self.y < rows - 1:
-        #    self.neighbors.append(grid[self.x+1][self.y+1])
-        #if self.x < cols - 1 and self.y > 0:
-        #    self.neighbors.append(grid[self.x+1][self.y-1])
-        #if self.x > 0 and self.y < rows - 1:
-        #    self.neighbors.append(grid[self.x-1][self.y+1])
-        #if self.x > 0 and self.y > 0:
-        #    self.neighbors.append(grid[self.x-1][self.y-1])
+        if self.x < cols - 1 and self.y < rows - 1:
+            self.neighbors.append(grid[self.x+1][self.y+1])
+        if self.x < cols - 1 and self.y > 0:
+            self.neighbors.append(grid[self.x+1][self.y-1])
+        if self.x > 0 and self.y < rows - 1:
+            self.neighbors.append(grid[self.x-1][self.y+1])
+        if self.x > 0 and self.y > 0:
+            self.neighbors.append(grid[self.x-1][self.y-1])
 
 
 def clickWall(pos, state):
@@ -304,7 +304,8 @@ def main():
 
 
 
-main()'''
+main()
+'''
 
 for x in range(20, 5):
-    print(x)
+    print(x)'''

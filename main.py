@@ -6,6 +6,8 @@ pygame.font.init()
 run = True
 close = False
 
+updateCycle = 80
+
 #   Title and space
 screen = pygame.display.set_mode((800,400))
 pygame.display.set_caption("Pacman but Better")
@@ -116,33 +118,12 @@ def aStar(ghostPos, pacPos, build):
             ver = True
             break
 
-    
-    #if(len(vis) < 40):
     path = []
     while(cur.prev != None):
         path.append(cur.prev)
         if(build):
             cur.prev.wall = True
         cur = cur.prev
-    #else:
-    #    path = [False, False]
-
-
-
-    '''for y in range(rows):
-        line = str(y)
-        for x in range(cols):
-            if grid[x][y] == cur:
-                line += "0"
-            elif grid[x][y] in path:
-                line += "|"
-            elif grid[x][y] in vis:
-                line += "X"w
-            elif grid[x][y] in opset:
-                line += "O"
-            else:
-                line += " "
-        print(line)'''
     
     for x in range(cols):
         for y in range(rows):
@@ -234,10 +215,7 @@ def displayPacman():
         elif(pacmanDir == 270):
             screen.blit(pacmanSpriteSmallDownOpen, (pacmanCurrentX, pacmanCurrentY))
 
-#def ghostCanMove(wantedDirOne, wantedDirTwo, currentX, currentY, xVel, yVel):
-#    
-#    else:
-#        return [currentX, currentY, currentDir]
+
 #   Deciding how to move for all characters
 def canMove(wantedDir, currentDir, currentX, currentY, xVel, yVel):
     canWant = True
@@ -334,7 +312,7 @@ pinkUpGhost = pygame.transform.scale(pinkUpGhostImage, (20, 20))
 
 ghostList = (redRightGhost, redUpGhost, redDownGhost, redLeftGhost, blueRightGhost, blueUpGhost, blueLeftGhost, blueDownGhost, yellowRightGhost, yellowUpGhost, yellowLeftGhost, yellowDownGhost, pinkRightGhost, pinkUpGhost, pinkLeftGhost, pinkDownGhost, clearSpriteSmall)
 
-#   Ghost Class
+#   Ghost Class and Functions
 class Ghost:
 
     ghostHeight = 20
@@ -353,11 +331,7 @@ class Ghost:
         self.pastY = yPos
     
     def dislayGhost(self):
-        '''if((self.wantedDir == self.dir) and ( (self.xPos == self.pastX) and (self.yPos == self.pastY))):
-            self.pos = canMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
-            self.xPos = self.pos[0]
-            self.yPos = self.pos[1]
-            self.dir = self.pos[2]'''
+        
         if(self.color == "Red"):
             self.value = 0
         elif(self.color == "Blue"):
@@ -386,54 +360,11 @@ class Ghost:
         self.pastX = self.xPos
         self.pastY = self.yPos
         self.target = aStar([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20], build)
-        #print('(', self.target.x, self.target.y, ')', '(', self.xPos//20, self.yPos//20, ')')
-        #print(caluclateHeuristic([self.xPos // 20, self.yPos // 20], [pacmanCurrentX // 20, pacmanCurrentY // 20]) , self.target.h)
-        '''if(self.target == False):
-            if(abs(self.xPos - pacmanCurrentX) > abs(self.yPos - pacmanCurrentY)):
-                if(self.xPos - pacmanCurrentX > 0):
-                    self.wantedDir = 180
-                else:
-                    self.wantedDir = 0
-            else:
-                if(self.yPos - pacmanCurrentY > 0):
-                    self.wantedDir = 90
-                else:
-                    self.wantedDir = 270
-            self.pos = ghostCanMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
-            self.xPos = self.pos[0]
-            self.yPos = self.pos[1]
-            self.dir = self.pos[2]'''
+        
         if(self.target != True):
             self.xPos = self.target.x * 20
             self.yPos = self.target.y * 20
-        # if(self.target):
-        #     if(self.xPos > self.target.x * 20):
-        #         self.dir = 180
-        #     elif(self.xPos < self.target.x * 20):
-        #         self.dir = 0
-        #     if(self.yPos > self.target.y * 20):
-        #         self.dir = 90
-        #     elif(self.yPos < self.target.y * 20):
-        #         self.dir = 270
-        #     self.xPos = self.target.x * 20
-        #     self.xPos = self.target.y * 20
         
-        '''else:
-        if(True):
-            if(abs(self.xPos - pacmanCurrentX) > abs(self.yPos - pacmanCurrentY)):
-                if(self.xPos - pacmanCurrentX > 0):
-                    self.wantedDir = 180
-                else:
-                    self.wantedDir = 0
-            else:
-                if(self.yPos - pacmanCurrentY > 0):
-                    self.wantedDir = 90
-                else:
-                    self.wantedDir = 270
-            self.pos = canMove(self.wantedDir, self.dir, self.xPos, self.yPos, self.ghostXVel, self.ghostYVel)
-            self.xPos = self.pos[0]
-            self.yPos = self.pos[1]
-            self.dir = self.pos[2]'''
 
 
         
@@ -448,12 +379,13 @@ def ghostFunctions():
     yellowGhost.calculateMovements(False)
     blueGhost.calculateMovements(True)
     redGhost.calculateMovements(False)
-    pinkGhost.calculateMovements(True)
+    pinkGhost.calculateMovements(False)
     redGhost.dislayGhost()
     blueGhost.dislayGhost()
     yellowGhost.dislayGhost()
     pinkGhost.dislayGhost()
 
+#   What to do at death
 def end():
     if(redGhost.target == True or blueGhost.target == True or yellowGhost.target == True or pinkGhost.target == True):
         if(yellowGhost.target == True):
@@ -463,7 +395,7 @@ def end():
                 print(caluclateHeuristic([yellowGhost.xPos, yellowGhost.yPos], [pacmanCurrentX, pacmanCurrentY]))
                 return False
 
-        elif(redGhost.target == True):
+        if(redGhost.target == True):
             if(caluclateHeuristic([redGhost.xPos, redGhost.yPos], [pacmanCurrentX, pacmanCurrentY]) < 21):
                 pass
             else:
@@ -477,6 +409,7 @@ def end():
         return True
     return False
 
+#   All Fruit stuff
 fruitImage = pygame.image.load("fruit.png")
 
 fruitSmall = pygame.transform.scale(fruitImage, (20, 20))
@@ -514,9 +447,10 @@ def displayFruits(resetArr, atePos):
         fruits[pos[0]//20][pos[1]//20].display()
     fruits[atePos[0]//20][atePos[1]//20].eaten = True
 
+#   Actual Run loop
 while run:
     resetArr = []
-    pygame.time.delay(80)
+    pygame.time.delay(updateCycle)
     pacmanPastX = pacmanCurrentX
     pacmanPastY = pacmanCurrentY
     for event in pygame.event.get():
@@ -542,14 +476,14 @@ while run:
     if(not close):
         resetArr = [[redGhost.pastX, redGhost.pastY], [blueGhost.pastX, blueGhost.pastY], [pinkGhost.pastX, pinkGhost.pastY], [yellowGhost.pastX, yellowGhost.pastY]] 
         displayFruits(resetArr, [pacmanCurrentX, pacmanCurrentY])
-        if(runner % 1 == 0):
+        if(runner % 3 == 0):
             switchToClosed = not switchToClosed
             pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
             pacmanCurrentX = pos[0]
             pacmanCurrentY = pos[1]
             pacmanDir = pos[2]
             displayPacman()
-        if(runner % 2 == 0):
+        if(runner % 3 == 0):
             ghostFunctions()
             if(end()):
                 runner = -20
@@ -562,8 +496,3 @@ while run:
     pygame.display.update()
 
 pygame.quit()
-
-"""
-Test a dummy ghost class with random movement using bitmap and figure out how to do death
-Then use basic greater than and less than logic to determine ideal path
-"""

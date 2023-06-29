@@ -40,6 +40,7 @@ This can be visualized using the same simulator that you saw before, I changed i
 ![PathPlanning Image 1](pathPlanningImage.png)
 
 ## Installation
-To begin you will need to install the latest version of [Python](https://www.python.org/downloads/), and [PyGame](https://www.pygame.org/wiki/GettingStarted). After this you will need to make a clone of this repository and run the [main.py](https://github.com/pranavnightsforrobotics/PathfindngPacman/blob/main/main.py) file.
+To begin you will need to install the latest version of [Python](https://www.python.org/downloads/), and [PyGame](https://www.pygame.org/wiki/GettingStarted). After this you will need to make a clone of this repository and run the [main.py](https://github.com/pranavnightsforrobotics/PathfindngPacman/blob/main/main.py) file. Rerun the file to keep playing after dying, and look below to adjust the game to be easier/harder.
 
 ## Modulation
+Open the main.py file on your local machine using some IDE. After opening the file you can find a variable called [updateCycle](https://github.com/pranavnightsforrobotics/PathfindngPacman/blob/main/main.py?plain=1#L9). This variable is the amount of delay before every iteration of the loop, the pacman can be moved after every 2 update cycles, and the ghost can be moved after every 3 update cycles.

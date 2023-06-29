@@ -6,7 +6,7 @@ pygame.font.init()
 run = True
 close = False
 
-updateCycle = 80
+updateCycle = 55
 
 #   Title and space
 screen = pygame.display.set_mode((800,400))
@@ -476,7 +476,7 @@ while run:
     if(not close):
         resetArr = [[redGhost.pastX, redGhost.pastY], [blueGhost.pastX, blueGhost.pastY], [pinkGhost.pastX, pinkGhost.pastY], [yellowGhost.pastX, yellowGhost.pastY]] 
         displayFruits(resetArr, [pacmanCurrentX, pacmanCurrentY])
-        if(runner % 3 == 0):
+        if(runner % 2 == 0):
             switchToClosed = not switchToClosed
             pos = canMove(pacmanWantedDir, pacmanDir, pacmanCurrentX, pacmanCurrentY, pacmanXVel, pacmanYVel)
             pacmanCurrentX = pos[0]

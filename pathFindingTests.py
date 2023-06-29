@@ -129,7 +129,7 @@ win = pygame.display.set_mode(size)
 
 clock = pygame.time.Clock()
 
-cols, rows = 50, 50
+cols, rows = 10, 10
 
 
 grid = []

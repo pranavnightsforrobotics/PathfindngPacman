@@ -3,6 +3,8 @@
 ## Table of contents
 1. [Inspiration](#Inspiration)
 2. [Explanation](#Explanation)
+    1. [PathFinding](#pathfinding)
+    2. [PathPlanning](#pathplanning)
 3. [Installation](#Installation)
 4. [Modulation](#Modulation)
 
@@ -21,8 +23,10 @@ To fix this I decided to add 2 things to the regular pacman game.
 2. Implement Path planning
 
 ## Explanation
-### Path finding
+### PathFinding
 
+
+### PathPlanning
 
 ## Installation
 

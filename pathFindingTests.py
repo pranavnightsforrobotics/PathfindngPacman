@@ -121,7 +121,7 @@ from tkinter import messagebox, Tk
 
 
 
-size = (width, height) = 600, 600
+size = (width, height) = 300, 300
 
 pygame.init()
 

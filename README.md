@@ -35,7 +35,7 @@ This theory after slight modification was used to decide the movements of the gh
 Path Planning is a custom made process to avoid stacking. When playing the game you can often notice ghosts going in the same directions, and stacking which makes the sum of 4 ghosts essentially be equal to 1. To avoid this I created path planning. Since I calculate the path of each ghost before actually making them move, I can alter the path if I notice similarities between the paths. The ghosts calculate their paths one by one, but all of their paths are calculated atleast once before moving any of them, so the path of the next ghost is based on the path of the last ghost. The path of the last ghost is transformed into imaginary walls that the next ghost cannot access. This is reduces the stacking siginificantly and makes sure that there are alwlays atleast 2 but often 4 ghost attacking the pacman on differnet paths.
 
 This can be visualized using the same simulator that you saw before, I changed it to be a 10 by 10 that way it is easier to understand. The first (shortest) path that is created is then converted into a set of walls that will be used for the second path's generation.
-![PathPlanning Image 1](pathPlanningImage1.png) ![PathPlanning Image 2](pathPlanningImage2.png)
+![PathPlanning Image 1](pathPlanningImage.png)
 
 ## Installation
 
